@@ -49,6 +49,8 @@ The system successfully recommends restaurants by considering user preferences a
 - The system balances multiple user preferences effectively using search algorithms.
 - The graph visualization aids in understanding the recommendation paths
 
+## Revision
+So in our presentation we forgot to erase the calculate distance, as we said in the presentation that we previously tried to combine the BFS code and the A* search code so we might have tried to use calculate distance but it didn't work out. In our seperated BFS and A* Search code that we presentated we didn't use the calculate distance at all, so for the revision we only use queue for our BFS code and deleted the calculate distance.
 
 
 
