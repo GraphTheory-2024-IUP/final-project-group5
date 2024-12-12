@@ -50,9 +50,60 @@ The system successfully recommends restaurants by considering user preferences a
 - The graph visualization aids in understanding the recommendation paths
 
 ## Revision
-So in our presentation we forgot to erase the calculate distance, as we said in the presentation that we previously tried to combine the BFS code and the A* search code so we might have tried to use calculate distance but it didn't work out. In our seperated BFS and A* Search code that we presentated we didn't use the calculate distance at all, so for the revision we only use queue for our BFS code and deleted the calculate distance.
+Our initial code was working more like a greedy search instead of a true Breadth-First Search (BFS). We also realized, BFS does not inherently prioritize the nearest restaurants to the user but explores nodes level by level. To address this and ensure that the closest restaurants are prioritized while maintaining the existing output, we revised the implementation to use Best-First Search (BestFS). BestFS uses a heuristic — in this case, the distance between the user and the restaurant — to guide the search efficiently toward the nearest results first. This approach achieves the intended behavior without altering the output. Here are the revised code snippets:
 
 
+### BFS Changed into BestFS
+```
+# BestFS search function to prioritize only distance 
+def bestfs(user_location, restaurants, max_distance):
+    queue = deque([(user_location, [])])  # Start from user's location
+    visited = set()  # To track visited locations
+    best_restaurants = []  # List to store the closest restaurants found
+    search_times = []  # List to store the search time for each restaurant
+
+    while queue and len(best_restaurants) < 5:
+        current_location, path = queue.popleft()
+
+        # Sort restaurants by distance to prioritize the closest ones
+        for restaurant in sorted(restaurants, key=lambda r: calculate_distance(current_location, r["location"])):
+            start_time = time.time()  # Start timing for this restaurant
+
+            # Skip if the restaurant has already been visited
+            if restaurant["location"] in visited:
+                continue
+
+            # Calculate the distance from the current location to the restaurant
+            distance = calculate_distance(current_location, restaurant["location"])
+
+            # Skip restaurants that are beyond the max distance
+            if distance > max_distance:
+                continue
+
+            # Mark as visited and add to the best restaurants list
+            visited.add(restaurant["location"])
+            new_path = path + [restaurant]  # Add the restaurant to the path
+            best_restaurants.append(restaurant)
+
+            # Log the time taken to process this restaurant
+            end_time = time.time()
+            search_times.append((restaurant['name'], end_time - start_time))
+
+            # Stop if we've found enough restaurants
+            if len(best_restaurants) >= 5:
+                break
+
+            # Add the restaurant to the queue for further exploration
+            queue.append((restaurant["location"], new_path))  # BestFS: continue exploring from this restaurant
+
+    return best_restaurants, search_times
+```
 
 
-
+### Adjustment on BestFS Argument
+```
+elif priority == "distance":
+    start_time = time.time()  
+    best_restaurants, search_times = bestfs(user_location, restaurants, max_distance)
+    end_time = time.time() 
+```
