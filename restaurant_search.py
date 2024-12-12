@@ -69,30 +69,47 @@ def a_star_search(user_location, restaurants, preferred_rating, max_distance, bu
 
     return best_restaurants, search_times   
 
-# BFS search function to prioritize only distance 
-def bfs(user_location, restaurants):
+# BFS changed into BestFS
+# BestFS search function to prioritize only distance 
+def bestfs(user_location, restaurants, max_distance):
     queue = deque([(user_location, [])])  # Start from user's location
     visited = set()  # To track visited locations
     best_restaurants = []  # List to store the closest restaurants found
     search_times = []  # List to store the search time for each restaurant
 
-    for restaurant in sorted(restaurants, key=lambda r: calculate_distance(user_location, r["location"])):
-        start_time = time.time()  # Start timing for this restaurant
-        if restaurant["location"] in visited:
-            continue
+    while queue and len(best_restaurants) < 5:
+        current_location, path = queue.popleft()
 
-        # Calculate distance from current location to the restaurant
-        distance = calculate_distance(user_location, restaurant["location"])
+        # Sort restaurants by distance to prioritize the closest ones
+        for restaurant in sorted(restaurants, key=lambda r: calculate_distance(current_location, r["location"])):
+            start_time = time.time()  # Start timing for this restaurant
 
-        # Mark as visited and add to the best restaurants list
-        visited.add(restaurant["location"])
-        best_restaurants.append(restaurant)
-        end_time = time.time()  # End timing for this restaurant
-        search_times.append((restaurant['name'], end_time - start_time))  # Log time taken for this restaurant
+            # Skip if the restaurant has already been visited
+            if restaurant["location"] in visited:
+                continue
 
-        # Stop if we have enough results
-        if len(best_restaurants) >= 5:
-            break
+            # Calculate the distance from the current location to the restaurant
+            distance = calculate_distance(current_location, restaurant["location"])
+
+            # Skip restaurants that are beyond the max distance
+            if distance > max_distance:
+                continue
+
+            # Mark as visited and add to the best restaurants list
+            visited.add(restaurant["location"])
+            new_path = path + [restaurant]  # Add the restaurant to the path
+            best_restaurants.append(restaurant)
+
+            # Log the time taken to process this restaurant
+            end_time = time.time()
+            search_times.append((restaurant['name'], end_time - start_time))
+
+            # Stop if we've found enough restaurants
+            if len(best_restaurants) >= 5:
+                break
+
+            # Add the restaurant to the queue for further exploration
+            queue.append((restaurant["location"], new_path))  # BestFS: continue exploring from this restaurant
 
     return best_restaurants, search_times
 
@@ -188,24 +205,24 @@ restaurants = [
     {"name": "Konka Coffee", "location": (-7.326794223279337, 112.7918961777398), "rating": 4.2, "price_range": "Rp 25.000-50.000"},
     {"name": "Kakkoii All You Can Eat Japanese", "location": (-7.280572726526857, 112.77099454073603), "rating": 4.7, "price_range": "Rp 125.000-175.000"},
     {"name": "WARUNG SOVIE", "location": (-7.295041197068976, 112.78133049375116), "rating": 3.9, "price_range": "Rp25.000-50.000"},
-{"name": "Warung Nanda", "location": (-7.297382428877375, 112.77935638794003), "rating": 4.6, "price_range": "Rp1.000-25.000"},
-{"name": "Seafood AMEN", "location": (-7.303625049319702, 112.78137125632294), "rating": 4.4, "price_range": "Rp75.000-100.000"},
-{"name": "D'Coffee Cup - Gunung Anyar", "location": (-7.340695931218665, 112.78577988642328), "rating": 2.9, "price_range": "Rp25.000-50.000"},
-{"name": "BM Coffee Surabaya - Merr", "location": (-7.325930011357331, 112.78087910733963), "rating": 4.1, "price_range": "Rp25.000-50.000"},
-{"name": "HONGER", "location": (-7.340582599883527, 112.7861010668352), "rating": 4.5, "price_range": "Rp25.000-50.000"},
-{"name": "Warkop DE PALLET", "location": (-7.341864888216235, 112.78632239023224), "rating": 4.5, "price_range": "Rp1.000-25.000"},
-{"name": "MOOGS Coffee", "location": (-7.322705148688577, 112.78046055091326), "rating": 4.6, "price_range": "Rp25.000-50.000"},
-{"name": "Ramen Master - Ir. Soekarno", "location": (-7.3231840083494495, 112.78068585645809), "rating": 4.5, "price_range": "Rp25.000-50.000"},
-{"name": "Warung 17", "location": (-7.317219065691251, 112.76295670488774), "rating": 4.5, "price_range": "Rp1.000-25.000"},
-{"name": "CARNIS", "location": (-7.3094435073938016, 112.76730724535147), "rating": 4.6, "price_range": "Rp30.000-100.000"},
-{"name": "Kampoeng Steak", "location": (-7.3050104476370095, 112.76922767265833), "rating": 4.4, "price_range": "Rp25.000-50.000"},
-{"name": "Bebek Carok - Surabaya", "location": (-7.294677822913461, 112.76267869085959), "rating": 4.6, "price_range": "Rp25.000-50.000"},
-{"name": "Toko Roti Cengli Manyar Rejo", "location": (-7.294662723202618, 112.7676206036722), "rating": 4.3, "price_range": "Rp25.000-50.000"},
-{"name": "Tip-Top Nasi Timbel", "location": (-7.278123554311434, 112.76560802694178), "rating": 4.4, "price_range": "Rp25.000-50.000"},
-{"name": "Ikan Bakar Cianjur - Manyar Kertoarjo", "location": (-7.278289841661771, 112.76557181712053), "rating": 4.6, "price_range": "Rp50.000-100.000"},
-{"name": "Flash Coffee", "location": (-7.277860405103996, 112.7656289554947), "rating": 4.6, "price_range": "Rp25.000-50.000"},
-{"name": "Yummy Resto", "location": (-7.277752221149269, 112.76535179700956), "rating": 4.7, "price_range": "Rp25.000-50.000"},
-{"name": "Thirty Bumbu by Chop Buntut Surabaya", "location": (-7.277821602206137, 112.76537657941401), "rating": 4.6, "price_range": "Rp50.000-75.000"}
+    {"name": "Warung Nanda", "location": (-7.297382428877375, 112.77935638794003), "rating": 4.6, "price_range": "Rp1.000-25.000"},
+    {"name": "Seafood AMEN", "location": (-7.303625049319702, 112.78137125632294), "rating": 4.4, "price_range": "Rp75.000-100.000"},
+    {"name": "D'Coffee Cup - Gunung Anyar", "location": (-7.340695931218665, 112.78577988642328), "rating": 2.9, "price_range": "Rp25.000-50.000"},
+    {"name": "BM Coffee Surabaya - Merr", "location": (-7.325930011357331, 112.78087910733963), "rating": 4.1, "price_range": "Rp25.000-50.000"},
+    {"name": "HONGER", "location": (-7.340582599883527, 112.7861010668352), "rating": 4.5, "price_range": "Rp25.000-50.000"},
+    {"name": "Warkop DE PALLET", "location": (-7.341864888216235, 112.78632239023224), "rating": 4.5, "price_range": "Rp1.000-25.000"},
+    {"name": "MOOGS Coffee", "location": (-7.322705148688577, 112.78046055091326), "rating": 4.6, "price_range": "Rp25.000-50.000"},
+    {"name": "Ramen Master - Ir. Soekarno", "location": (-7.3231840083494495, 112.78068585645809), "rating": 4.5, "price_range": "Rp25.000-50.000"},
+    {"name": "Warung 17", "location": (-7.317219065691251, 112.76295670488774), "rating": 4.5, "price_range": "Rp1.000-25.000"},
+    {"name": "CARNIS", "location": (-7.3094435073938016, 112.76730724535147), "rating": 4.6, "price_range": "Rp30.000-100.000"},
+    {"name": "Kampoeng Steak", "location": (-7.3050104476370095, 112.76922767265833), "rating": 4.4, "price_range": "Rp25.000-50.000"},
+    {"name": "Bebek Carok - Surabaya", "location": (-7.294677822913461, 112.76267869085959), "rating": 4.6, "price_range": "Rp25.000-50.000"},
+    {"name": "Toko Roti Cengli Manyar Rejo", "location": (-7.294662723202618, 112.7676206036722), "rating": 4.3, "price_range": "Rp25.000-50.000"},
+    {"name": "Tip-Top Nasi Timbel", "location": (-7.278123554311434, 112.76560802694178), "rating": 4.4, "price_range": "Rp25.000-50.000"},
+    {"name": "Ikan Bakar Cianjur - Manyar Kertoarjo", "location": (-7.278289841661771, 112.76557181712053), "rating": 4.6, "price_range": "Rp50.000-100.000"},
+    {"name": "Flash Coffee", "location": (-7.277860405103996, 112.7656289554947), "rating": 4.6, "price_range": "Rp25.000-50.000"},
+    {"name": "Yummy Resto", "location": (-7.277752221149269, 112.76535179700956), "rating": 4.7, "price_range": "Rp25.000-50.000"},
+    {"name": "Thirty Bumbu by Chop Buntut Surabaya", "location": (-7.277821602206137, 112.76537657941401), "rating": 4.6, "price_range": "Rp50.000-75.000"}
 ]
 
 search_times = []
@@ -216,7 +233,7 @@ if priority == "rating":
     end_time = time.time()  
 elif priority == "distance":
     start_time = time.time()  
-    best_restaurants, search_times = bfs(user_location, restaurants)
+    best_restaurants, search_times = bestfs(user_location, restaurants, max_distance) #Added max_distance
     end_time = time.time()  
 else:
     print("Prioritas tidak valid. Pilih 'rating' atau 'distance'.")
